@@ -43,8 +43,8 @@ sleep_system_prompt = read_file_to_string(sleep_path)
 dialy_path = 'dialy_planning_system_prompt.txt'
 dialy_system_prompt = read_file_to_string(dialy_path)
 
-# Fill google key 
-GOOGLE_API_KEY=""
+# Fill google key
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
 
 generation_config = {
   "temperature": 1,
