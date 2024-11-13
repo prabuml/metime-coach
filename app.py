@@ -77,8 +77,19 @@ class: "Unable to Sleep"/"Frustrated towards others"/"Having low confidence"/"Pl
 """
 
 # Initialize chat history
-messages = []
-model = None
+#messages = []
+#model = None
+
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+    st.session_state.model = None
+    st.session_state.history = []
+
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
 def save_audio(audio_bytes,file_name):
     audio_buffer = audio_bytes
@@ -116,57 +127,58 @@ def transcribe_audio(audio_file):
     return f"Could not request results from Google Speech Recognition service; {e}"
 
 loop=0
-
-while audio_value := st.audio_input("Speak",key="key_"+str(loop)):
-    save_audio(audio_value,"audio.wav")
-    user_text = transcribe_audio("audio.wav")
-    messages.append({"role": "user", "parts": [user_text]})
+if audio_value := st.chat_input("Speak",key="key_"+str(loop)):
+    #save_audio(audio_value,"audio.wav")
+    user_text = audio_value # transcribe_audio("audio.wav")
+    st.session_state.history.append({"role": "user", "parts": [user_text]})
+    st.session_state.messages.append({"role": "user", "content": user_text})
     # Display user message in chat message container
     with st.chat_message("user"):
         st.markdown(user_text)
 
-    if model == None:
+    if st.session_state.model == None:
         user_prompt = classification_user_prompt.format(text=user_text)
         output = classification_model.generate_content(user_prompt).text
 
         if "Frustrated towards others" in output:
-            model = "Forgiveness"
+            st.session_state.model = "Forgiveness"
             st.success("I am your Forgiveness coach")
         elif "Having low confidence" in output:
-            model = "Confidence"
+            st.session_state.model = "Confidence"
             st.success("I am your Confidence coach")
         elif "Unable to Sleep" in output:
-            model = "Sleep"
+            st.session_state.model = "Sleep"
             st.success("I am your Sleep coach")
         elif "Plan your day" in output:
             st.success("I am your Daily Planner coach")
-            model = "Dialy"
-    if model == "Forgiveness":
-        convo = forgiveness_model.start_chat(history = messages)
+            st.session_state.model = "Dialy"
+    if st.session_state.model == "Forgiveness":
+        convo = forgiveness_model.start_chat(history = st.session_state.history)
 
         # Generate and display the model's response
         response = convo.send_message(user_text)
-    elif model == "Confidence":
-        convo = confidence_model.start_chat(history=messages)
+    elif st.session_state.model == "Confidence":
+        convo = confidence_model.start_chat(history=st.session_state.history)
 
         # Generate and display the model's response
         response = convo.send_message(user_text)
-    elif model == "Sleep":
-        convo = sleep_model.start_chat(history=messages)
+    elif st.session_state.model == "Sleep":
+        convo = sleep_model.start_chat(history=st.session_state.history)
 
         # Generate and display the model's response
         response = convo.send_message(user_text)
-    elif model == "Dialy":
-        convo = dialy_model.start_chat(history=messages)
+    elif st.session_state.model == "Dialy":
+        convo = dialy_model.start_chat(history=st.session_state.history)
         # Generate and display the model's response
         response = convo.send_message(user_text)
 
-    if model:
-        messages.append({"role": "model", "parts": [response.text]})
+    if st.session_state.model:
+        st.session_state.history.append({"role": "model", "parts": [response.text]})
+        st.session_state.messages.append({"role": "model", "content": response.text})
 
         with st.chat_message("assistant"):
             st.markdown(response.text)
         text_to_speech(response.text)
-    loop = loop + 1
+
 
 
