@@ -175,10 +175,18 @@ if audio_value := st.chat_input("Speak",key="key_"+str(loop)):
     if st.session_state.model:
         st.session_state.history.append({"role": "model", "parts": [response.text]})
         st.session_state.messages.append({"role": "model", "content": response.text})
-
         with st.chat_message("assistant"):
             st.markdown(response.text)
         text_to_speech(response.text)
+    else:
+        st.title("Only Four coaches are active")
+        st.subheader("Dialy Planning Coach")
+        st.subheader("Confidence Coach")
+        st.subheader("Forgiveness Coach")
+        st.subheader("Sleep Coach")
+        st.markdown("## :red[Send relevant queries]")
+
+
 
 
 
